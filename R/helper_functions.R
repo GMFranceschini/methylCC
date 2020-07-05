@@ -143,6 +143,15 @@
     output <- list(cvg_targetbs = cvg_targetbs, 
                    M_targetbs = M_targetbs, gr_object = gr_object)
   }
+  
+  if(is(object, "GenomicRatioSet")){
+    pd = pData(object)
+    gr_object <- granges(object)
+    beta_values = assay(object)
+    output <- list(pd = pd, gr_object = gr_object, 
+                   beta_values = beta_values)
+  }
+  
   return(output)
 }
 
@@ -197,7 +206,7 @@
     } 
   }
 
-  if(is(object, "RGChannelSet") || is(object, "GenomicMethylSet")) {       
+  if(is(object, "RGChannelSet") || is(object, "GenomicMethylSet") || is(object, "GenomicRatioSet")) {       
     if(verbose){
       message("[estimatecc] Preprocessing RGChannelSet or
               GenomicMethylSet object.") 
@@ -265,9 +274,10 @@
     }
   
   ymat <- mcols(keep_dmrs) 
+  
   if(!is.null(sampleNames(object))){ 
-    colnames(ymat) <- sampleNames(object)
-  }
+    colnames(ymat) <- sampleNames(object)}
+  
   n <- ncol(mcols(keep_dmrs))
   ids <- colnames(mcols(zmat_sub))
   zmat <- as.matrix(as.data.frame(mcols(zmat_sub)))
@@ -497,11 +507,14 @@
                           "sig1" = mean(estep1$mom2) - mean(estep1$mom1)^2)
   x0 <- (sweep((1-Zs), 1, estep0$mom1, FUN = "*") +
            sweep(Zs,     1, estep1$mom1, FUN = "*"))
+  
   new_pi_mle <- abs(t(apply(Ys, 2, function(ys){
     solve.QP(Dmat = (t(x0)%*%x0),
              dvec = t(x0)%*%t(t(ys)), Amat = cbind(rep(1,K), diag(K)),
              bvec = c(1, rep(0, K)), meq = 1)$sol })))
+  
   tau_est <- (1/(R*n)) * sum((Ys - x0 %*% t(new_pi_mle))^2)
+  
   new_theta <- cbind(new_theta, "tau" = tau_est,
                      "lik_fun" = -((R*n)/2)*log(2*pi*tau_est) -
                        (1/(2*tau_est)) * sum((Ys - x0 %*% t(new_pi_mle))^2) -
@@ -513,6 +526,7 @@
                               sum((estep1$mom1 - new_theta$alpha1)^2))
   
   return(list("new_theta" = new_theta, "new_pi_mle" = new_pi_mle))
+  
 }
 
 

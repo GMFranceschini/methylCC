@@ -82,8 +82,8 @@ estimatecc <- function(object, find_dmrs_object = NULL, verbose = TRUE,
 
 if(!demo){
   if(!(is(object, "RGChannelSet") || is(object, "GenomicMethylSet") || 
-       is(object, "BSseq"))){
-  stop("The object must be a RGChannelSet, GenomicMethylSet or BSseq object'.")
+       is(object, "BSseq") || is(object, "GenomicRatioSet") )){
+  stop("The object must be a RGChannelSet, GenomicMethylSet, GenomicRatioSet, or BSseq object'.")
   }
   
   if(!(init_param_method %in% c("random", "known_regions")) ){
